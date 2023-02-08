@@ -2,17 +2,25 @@ import { Button, Flex, Input, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { authModalState } from "@/src/atoms/authModalAtom";
+import { auth } from "@/src/firebase/client-app";
+import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { FIREBASE_ERRORS } from "../../../firebase/errors";
 
 type LoginProps = {};
 
 const Login: React.FC<LoginProps> = () => {
   const setAuthModalState = useSetRecoilState(authModalState);
+  const [signInWithEmailAndPassword, user, loading, error] =
+    useSignInWithEmailAndPassword(auth);
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
   });
 
-  const onSubmit = () => {};
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    signInWithEmailAndPassword(loginForm.email, loginForm.password);
+  };
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLoginForm((prev) => ({
@@ -46,9 +54,34 @@ const Login: React.FC<LoginProps> = () => {
         _focus={{ outline: "none" }}
         bg="gray.50"
       />
-      <Button w="100%" height="36px" mt={2} mb={2} type="submit">
+      <Text fontSize="10pt" color="red.500" textAlign="center">
+        {FIREBASE_ERRORS[error?.message as keyof typeof FIREBASE_ERRORS]}
+      </Text>
+      <Button
+        isLoading={loading}
+        w="100%"
+        height="36px"
+        mt={2}
+        mb={2}
+        type="submit"
+      >
         Login
       </Button>
+      <Flex justify="center" mb={2}>
+        <Text fontSize="9pt" mr={1}>
+          Forgot your password?
+        </Text>
+        <Text
+          fontSize="9pt"
+          color="blue.500"
+          cursor="pointer"
+          onClick={() => {
+            setAuthModalState((prev) => ({ ...prev, view: "resetPassword" }));
+          }}
+        >
+          Reset
+        </Text>
+      </Flex>
       <Flex fontSize="9pt" justifyContent={"center"}>
         <Text mr={1}>New here?</Text>
         <Text
